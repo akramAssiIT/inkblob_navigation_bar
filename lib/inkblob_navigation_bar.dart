@@ -16,6 +16,7 @@ class InkblobNavigationBar extends StatelessWidget {
       this.showElevation = true,
       this.iconSize = 24,
       this.backgroundColor,
+      this.iconColor = Colors.black,
       this.containerHeight = 60,
       double? itemWidth,
       this.animationDuration = const Duration(milliseconds: 270),
@@ -50,6 +51,8 @@ class InkblobNavigationBar extends StatelessWidget {
   /// The background color of the navigation bar. It defaults to
   /// [Theme.bottomAppBarColor] if not provided.
   final Color? backgroundColor;
+
+  final Color iconColor;
 
   /// Whether this navigation bar should show an elevation. Defaults to true.
   final bool showElevation;
@@ -88,27 +91,22 @@ class InkblobNavigationBar extends StatelessWidget {
 
   /// Calculates the (left) offset of an icon based on its index
   double _iconOffset(double maxWidth, double index) {
-    return ((maxWidth - items.length * itemWidth) / (items.length + 1)) *
-            (index + 1) +
-        (index * itemWidth);
+    return ((maxWidth - items.length * itemWidth) / (items.length + 1)) * (index + 1) + (index * itemWidth);
   }
 
   /// Calculates the (left) offset of the inkblob based on the animation value
-  double _blobOffset(double maxWidth, double value) =>
-      _iconOffset(maxWidth, value) + ((itemWidth - iconSize) / 2);
+  double _blobOffset(double maxWidth, double value) => _iconOffset(maxWidth, value) + ((itemWidth - iconSize) / 2);
 
   /// Calculates the proportion of the inkblob animation distance it is covered by an icon
   double _percentageDist(double maxWidth) {
     return iconSize /
-        (((maxWidth - items.length * itemWidth) / (items.length + 1) +
-                (itemWidth - iconSize)) *
+        (((maxWidth - items.length * itemWidth) / (items.length + 1) + (itemWidth - iconSize)) *
             (selectedIndex - previousIndex).abs());
   }
 
   @override
   Widget build(BuildContext context) {
-    final bgColor =
-        backgroundColor ?? Theme.of(context).bottomAppBarTheme.color;
+    final bgColor = backgroundColor ?? Theme.of(context).bottomAppBarTheme.color;
     return Container(
       decoration: BoxDecoration(
         color: bgColor,
@@ -137,24 +135,21 @@ class InkblobNavigationBar extends StatelessWidget {
                     ),
                     builder: (context, double value, child) {
                       double anim =
-                          (value - min(previousIndex, selectedIndex)) /
-                              max(1, (previousIndex - selectedIndex).abs());
+                          (value - min(previousIndex, selectedIndex)) / max(1, (previousIndex - selectedIndex).abs());
                       anim = previousIndex > selectedIndex ? 1 - anim : anim;
                       Color color = Color.lerp(
                             items[previousIndex].color,
                             items[selectedIndex].color,
                             anim,
                           ) ??
-                          Colors.black;
+                          iconColor;
                       if (anim == 1) return const SizedBox();
                       return PositionedDirectional(
                         start: _blobOffset(constraints.maxWidth, value),
                         child: Transform.scale(
                           scaleX:
                               // 1,
-                              0.9 +
-                                  (anim > 0.5 ? 1 - anim : anim) *
-                                      (selectedIndex - previousIndex).abs(),
+                              0.9 + (anim > 0.5 ? 1 - anim : anim) * (selectedIndex - previousIndex).abs(),
                           child: Opacity(
                             opacity: _opacity(anim, percentageDist),
                             child: Container(
@@ -184,8 +179,7 @@ class InkblobNavigationBar extends StatelessWidget {
                       int index = items.indexOf(item);
                       bool isSelected = index == selectedIndex;
                       return PositionedDirectional(
-                        start:
-                            _iconOffset(constraints.maxWidth, index.toDouble()),
+                        start: _iconOffset(constraints.maxWidth, index.toDouble()),
                         child: Stack(
                           children: [
                             GestureDetector(
@@ -198,19 +192,14 @@ class InkblobNavigationBar extends StatelessWidget {
                                           : Tween<double>(begin: 1, end: 0),
                                       duration: animationDuration,
                                       curve: curve,
-                                      builder: (context, value, child) =>
-                                          _ItemWidget(
+                                      builder: (context, value, child) => _ItemWidget(
                                         item: item,
                                         fillValue: max(
-                                          1 -
-                                              (1 - value) *
-                                                  (1 / percentageDist),
+                                          1 - (1 - value) * (1 / percentageDist),
                                           0,
                                         ),
                                         iconSize: iconSize,
-                                        selectionDirection:
-                                            getSelectionDirection(
-                                                context, index, isSelected),
+                                        selectionDirection: getSelectionDirection(context, index, isSelected),
                                         itemWidth: itemWidth,
                                         itemHeight: containerHeight,
                                         fixedTitle: fixedTitle,
@@ -221,8 +210,7 @@ class InkblobNavigationBar extends StatelessWidget {
                                       fillValue: isSelected ? 1 : 0,
                                       iconSize: iconSize,
                                       itemWidth: itemWidth,
-                                      selectionDirection:
-                                          Directionality.of(context),
+                                      selectionDirection: Directionality.of(context),
                                       itemHeight: containerHeight,
                                       fixedTitle: fixedTitle,
                                     ),
@@ -231,9 +219,7 @@ class InkblobNavigationBar extends StatelessWidget {
                               PositionedDirectional(
                                 start: item.badgeOffset?.dx ?? (itemWidth / 3),
                                 top: item.badgeOffset?.dy ?? (itemWidth / 8),
-                                child: IgnorePointer(
-                                    child:
-                                        item.badge ?? const SizedBox.shrink()),
+                                child: IgnorePointer(child: item.badge ?? const SizedBox.shrink()),
                               )
                           ],
                         ),
@@ -249,8 +235,7 @@ class InkblobNavigationBar extends StatelessWidget {
     );
   }
 
-  TextDirection getSelectionDirection(
-      BuildContext context, int index, bool isSelected) {
+  TextDirection getSelectionDirection(BuildContext context, int index, bool isSelected) {
     var isLtr = Directionality.of(context) == TextDirection.ltr;
 
     return (index > selectedIndex) || (isSelected && index > previousIndex)
@@ -306,8 +291,7 @@ class _ItemWidget extends StatelessWidget {
               Expanded(
                 child: Transform(
                   alignment: Alignment.topCenter,
-                  transform: Matrix4.translationValues(fillValue, fillValue, 1)
-                    ..scale(fillValue, fillValue, 1),
+                  transform: Matrix4.translationValues(fillValue, fillValue, 1)..scale(fillValue, fillValue, 1),
                   child: item.title,
                 ),
               )
